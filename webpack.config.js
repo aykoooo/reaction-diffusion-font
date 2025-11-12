@@ -3,6 +3,12 @@ const path = require('path');
 module.exports = {
   mode: 'development',
   entry: path.resolve('./entry.js'),
+  resolve: {
+    fallback: {
+      "fs": false,
+      "path": false
+    }
+  },
   module: {
     rules: [
       {

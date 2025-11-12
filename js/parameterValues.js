@@ -84,8 +84,7 @@ export default {
     y: parameterMetadata.bias.y.initial
   },
 
-  export: {
-    threshold: 128,
-    resolution: 2
+  rendering: {
+    exportThreshold: 128
   }
 };

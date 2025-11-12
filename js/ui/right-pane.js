@@ -20,7 +20,7 @@ import { setupRenderTargets } from '../renderTargets';
 import { expandMap } from '../map';
 import { exportImage } from '../export';
 import { loadFontFromBuffer } from '../fontLoader';
-import { exportBothFormats } from '../vectorExport';
+import { exportAsSVG, downloadSVG } from '../vectorExport';
 
 let pane;
 let paneContainer;
@@ -494,6 +494,16 @@ function setupRenderingFolder() {
     .on('change', () => {
       setupRenderTargets();
     });
+
+  // Export Settings subfolder
+  const exportSettingsFolder = renderingFolder.addFolder({ title: 'Export Settings' });
+  
+  exportSettingsFolder.addInput(parameterValues.rendering, 'exportThreshold', {
+    label: 'Threshold',
+    min: 0,
+    max: 255,
+    step: 1
+  });
 }
 
 
@@ -601,53 +611,42 @@ function setupActions() {
 
   // Save as image button
   actionsFolder.addButton({
-    title: '💾 Save as image'
+    title: '💾 Save as image (PNG)'
   })
     .on('click', () => {
       exportImage();
     });
 
-  actionsFolder.addSeparator();
-
-  // Vector export settings
-  actionsFolder.addInput(parameterValues.export, 'threshold', {
-    label: 'Export threshold',
-    min: 0,
-    max: 255,
-    step: 1
+  // Export as SVG button
+  const svgButton = actionsFolder.addButton({
+    title: '📐 Export as SVG'
   });
 
-  actionsFolder.addInput(parameterValues.export, 'resolution', {
-    label: 'Export resolution',
-    options: {
-      '1x': 1,
-      '2x': 2,
-      '4x': 4,
-      '8x': 8
+  svgButton.on('click', async () => {
+    try {
+      // Disable button and show loading state
+      svgButton.title = 'Exporting...';
+      svgButton.disabled = true;
+      
+      console.log('Starting SVG export...');
+      console.log('Threshold:', parameterValues.rendering.exportThreshold);
+      
+      const threshold = parameterValues.rendering.exportThreshold;
+      const svg = await exportAsSVG(threshold);
+      downloadSVG(svg, 'reaction-diffusion.svg');
+      
+      console.log('SVG exported successfully!');
+      
+      // Re-enable button
+      svgButton.title = '📐 Export as SVG';
+      svgButton.disabled = false;
+    } catch (error) {
+      console.error('SVG export error:', error);
+      alert('SVG export failed: ' + error.message);
+      
+      // Re-enable button
+      svgButton.title = '📐 Export as SVG';
+      svgButton.disabled = false;
     }
   });
-
-  // Export as SVG button
-  actionsFolder.addButton({
-    title: '📤 Export as SVG'
-  })
-    .on('click', async () => {
-      try {
-        const { exportAsSVG, downloadSVG } = await import('../vectorExport');
-        const svg = await exportAsSVG(parameterValues.export.threshold, parameterValues.export.resolution);
-        downloadSVG(svg);
-        console.log('SVG exported successfully');
-      } catch (error) {
-        console.error('SVG export failed:', error);
-        alert('SVG export failed: ' + error.message);
-      }
-    });
-
-  // Export both PNG and SVG
-  actionsFolder.addButton({
-    title: '📦 Export PNG + SVG'
-  })
-    .on('click', () => {
-      exportBothFormats(parameterValues.export.threshold, parameterValues.export.resolution);
-    });
 }
