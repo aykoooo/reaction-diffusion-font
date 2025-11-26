@@ -13,6 +13,7 @@ import parameterMetadata from '../parameterMetadata';
 import parameterPresets from '../parameterPresets';
 
 import { simulationUniforms } from '../uniforms';
+import * as materials from '../materials';
 
 import { InitialTextureTypes, drawFirstFrame } from '../firstFrame';
 import { resetTextureSizes } from '../../entry';
@@ -20,7 +21,7 @@ import { setupRenderTargets } from '../renderTargets';
 import { expandMap } from '../map';
 import { exportImage } from '../export';
 import { loadFontFromBuffer } from '../fontLoader';
-import { exportBothFormats } from '../vectorExport';
+import { exportAsSVG, downloadSVG } from '../vectorExport';
 
 let pane;
 let paneContainer;
@@ -59,13 +60,7 @@ export function setupRightPane() {
   textSeedTextarea = null;
   textSeedContainer = null;
 
-  setupWorkspaceFolder();
-  setupReactionDiffusionParameters();
-  setupSeedFolder();
-  setupRenderingFolder();
-  setupCanvasSize();
-  setupActions();
-
+  // Initialize file input elements BEFORE setting up UI
   if(seedImageChooser == undefined || seedImageChooser == null) {
     seedImageChooser = document.getElementById('seed-image-chooser');
 
@@ -81,6 +76,8 @@ export function setupRightPane() {
 
         // draw reader.result to the buffer canvas
         rebuildRightPane();
+        // Auto-restart with uploaded image
+        setTimeout(() => drawFirstFrame(currentSeedType), 0);
       };
 
       reader.readAsDataURL(e.target.files[0]);
@@ -97,17 +94,17 @@ export function setupRightPane() {
 
       const file = e.target.files[0];
       const reader = new FileReader();
-      
+
       reader.onload = function() {
         loadFontFromBuffer(reader.result)
           .then((font) => {
             parameterValues.seed.font.filename = file.name;
             parameterValues.seed.font.fontLoaded = true;
             parameterValues.seed.font.useCustomFont = true;
-            
+
             console.log('Font loaded:', file.name);
             rebuildRightPane();
-            
+
             // Redraw if we're in text mode
             if(currentSeedType === InitialTextureTypes.TEXT) {
               drawFirstFrame(currentSeedType);
@@ -122,6 +119,15 @@ export function setupRightPane() {
       reader.readAsArrayBuffer(file);
     });
   }
+
+  // Now setup all the UI folders
+  setupWorkspaceFolder();
+  setupReactionDiffusionParameters();
+  setupSeedFolder();
+  setupBoundaryFolder();
+  setupRenderingFolder();
+  setupCanvasSize();
+  setupActions();
 }
 
   export function rebuildRightPane() {
@@ -306,6 +312,33 @@ function setupSeedFolder() {
     .on('change', (value) => {
       currentSeedType = parseInt(value);
       rebuildRightPane();
+      // Automatically restart simulation with new seed pattern (after rebuild)
+      setTimeout(() => drawFirstFrame(currentSeedType), 0);
+    });
+
+  // Drawing editor button
+  seedFolder.addButton({
+    title: '🎨 Open Drawing Editor'
+  })
+    .on('click', () => {
+      // Import drawing editor
+      import('../drawingEditor.js').then(module => {
+        // Get current seed if it exists
+        const bufferCanvas = document.querySelector('#buffer-canvas');
+        const existingSeed = bufferCanvas ?
+          bufferCanvas.getContext('2d').getImageData(0, 0, bufferCanvas.width, bufferCanvas.height) :
+          null;
+
+        // Get current boundary if enabled
+        const existingBoundary = parameterValues.boundary.enabled && materials.simulationMaterial.uniforms.boundaryMask.value ?
+          extractBoundaryData() :
+          null;
+
+        module.openDrawingEditor({
+          existingSeed,
+          existingBoundary
+        });
+      });
     });
 
   switch(currentSeedType) {
@@ -352,7 +385,10 @@ function setupSeedFolder() {
       label: 'Radius',
       min: 1,
       max: parameterValues.canvas.width > parameterValues.canvas.height ? parameterValues.canvas.height/2 : parameterValues.canvas.width/2
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
   }
 
   function addSquareOptions(folder) {
@@ -360,19 +396,28 @@ function setupSeedFolder() {
       label: 'Width',
       min: 1,
       max: parameterValues.canvas.width
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
 
     folder.addInput(parameterValues.seed.square, 'height', {
       label: 'Height',
       min: 1,
       max: parameterValues.canvas.height
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
 
     folder.addInput(parameterValues.seed.square, 'rotation', {
       label: 'Rotation',
       min: -180,
       max: 180
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
   }
 
   function addTextOptions(folder) {
@@ -394,6 +439,7 @@ function setupSeedFolder() {
     textSeedTextarea.placeholder = getTextPlaceholder();
     textSeedTextarea.addEventListener('input', (event) => {
       parameterValues.seed.text.value = event.target.value;
+      drawFirstFrame(currentSeedType);
     });
 
     container.appendChild(textSeedTextarea);
@@ -429,6 +475,8 @@ function setupSeedFolder() {
           alert('Please upload a font file first!');
           parameterValues.seed.font.useCustomFont = false;
           rebuildRightPane();
+        } else {
+          drawFirstFrame(currentSeedType);
         }
       });
 
@@ -437,14 +485,20 @@ function setupSeedFolder() {
     folder.addInput(parameterValues.seed.text, 'size', {
       label: 'Size',
       min: 10,
-      max: 200
-    });
+      max: 1000
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
 
     folder.addInput(parameterValues.seed.text, 'rotation', {
       label: 'Rotation',
       min: -180,
       max: 180
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
   }
 
   function addImageOptions(folder) {
@@ -459,7 +513,10 @@ function setupSeedFolder() {
         Scale: 1,
         Stretch: 2
       }
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
 
     folder.addButton({
       title: '🖼️ Upload an image'
@@ -474,14 +531,116 @@ function setupSeedFolder() {
       label: 'Scale',
       min: 0.1,
       max: 5.0
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
 
     folder.addInput(parameterValues.seed.image, 'rotation', {
       label: 'Rotation',
       min: -180,
       max: 180
-    });
+    })
+      .on('change', () => {
+        drawFirstFrame(currentSeedType);
+      });
   }
+
+
+//==============================================================
+//  BOUNDARY CONDITIONS
+//==============================================================
+function setupBoundaryFolder() {
+  const boundaryFolder = pane.addFolder({ title: 'Boundary Conditions', expanded: false });
+
+  // Enable boundary constraints checkbox
+  boundaryFolder.addInput(parameterValues.boundary, 'enabled', {
+    label: 'Constrain to Shape'
+  })
+    .on('change', (value) => {
+      if (value) {
+        // Regenerate boundary mask when enabled
+        drawFirstFrame(currentSeedType);
+      } else {
+        // Disable boundary in shader
+        materials.simulationMaterial.uniforms.enableBoundary.value = false;
+      }
+    });
+
+  // Boundary mode dropdown
+  boundaryFolder.addInput(parameterValues.boundary, 'mode', {
+    label: 'Shape Mode',
+    options: {
+      'Exact Outline': 'exact',
+      'Padded (Expanded)': 'padded',
+      'Eroded (Shrunk)': 'eroded',
+      'Soft Edges (Blurred)': 'soft',
+      'Inverted (Background)': 'inverted'
+    }
+  })
+    .on('change', () => {
+      if (parameterValues.boundary.enabled) {
+        drawFirstFrame(currentSeedType);
+      }
+    });
+
+  // Padding slider (for padded mode)
+  boundaryFolder.addInput(parameterValues.boundary, 'padding', {
+    label: 'Padding',
+    min: 0,
+    max: 50,
+    step: 1
+  })
+    .on('change', () => {
+      if (parameterValues.boundary.enabled && parameterValues.boundary.mode === 'padded') {
+        drawFirstFrame(currentSeedType);
+      }
+    });
+
+  // Erosion slider (for eroded mode)
+  boundaryFolder.addInput(parameterValues.boundary, 'erosion', {
+    label: 'Erosion',
+    min: 0,
+    max: 50,
+    step: 1
+  })
+    .on('change', () => {
+      if (parameterValues.boundary.enabled && parameterValues.boundary.mode === 'eroded') {
+        drawFirstFrame(currentSeedType);
+      }
+    });
+
+  // Blur radius slider (for soft mode)
+  boundaryFolder.addInput(parameterValues.boundary, 'blurRadius', {
+    label: 'Blur Radius',
+    min: 0,
+    max: 20,
+    step: 0.5
+  })
+    .on('change', () => {
+      if (parameterValues.boundary.enabled && parameterValues.boundary.mode === 'soft') {
+        drawFirstFrame(currentSeedType);
+      }
+    });
+
+  // Invert boundary checkbox
+  boundaryFolder.addInput(parameterValues.boundary, 'invert', {
+    label: 'Invert (Background Only)'
+  })
+    .on('change', () => {
+      if (parameterValues.boundary.enabled) {
+        drawFirstFrame(currentSeedType);
+      }
+    });
+
+  // Show overlay checkbox (debug visualization)
+  boundaryFolder.addInput(parameterValues.boundary, 'showOverlay', {
+    label: 'Show Boundary Overlay'
+  })
+    .on('change', (ev) => {
+      materials.displayMaterial.uniforms.showBoundaryOverlay.value = ev.value;
+    });
+}
 
 
 //==============================================================
@@ -490,9 +649,65 @@ function setupSeedFolder() {
 function setupRenderingFolder() {
   const renderingFolder = pane.addFolder({ title: 'Rendering' });
 
+  // Rendering style dropdown
+  renderingFolder.addInput(parameterValues.rendering, 'style', {
+    label: 'Style',
+    options: {
+      'HSL mapping': 0,
+      'Gradient': 1,
+      'Red Blob Games (original)': 2,
+      'Red Blob Games (alt 1)': 3,
+      'Red Blob Games (alt 2)': 4,
+      'Rainbow': 5,
+      'Black and white (soft)': 6,
+      'Black and white (hard)': 7,
+      '1-Bit Preview': 8,
+      'Raw': 9
+    }
+  })
+    .on('change', (value) => {
+      materials.displayMaterial.uniforms.renderingStyle.value = value;
+    });
+
   renderingFolder.addInput(parameterValues, 'useSmoothing', { label: 'Use smoothing' })
     .on('change', () => {
       setupRenderTargets();
+    });
+
+  // Export Settings subfolder
+  const exportSettingsFolder = renderingFolder.addFolder({ title: 'Export Settings' });
+
+  exportSettingsFolder.addInput(parameterValues.rendering, 'brightness', {
+    label: 'Brightness',
+    min: 0,
+    max: 2,
+    step: 0.1
+  })
+    .on('change', (value) => {
+      // Update shader uniform in real-time
+      materials.displayMaterial.uniforms.brightness.value = value;
+    });
+
+  exportSettingsFolder.addInput(parameterValues.rendering, 'contrast', {
+    label: 'Contrast',
+    min: 0,
+    max: 2,
+    step: 0.1
+  })
+    .on('change', (value) => {
+      // Update shader uniform in real-time
+      materials.displayMaterial.uniforms.contrast.value = value;
+    });
+
+  exportSettingsFolder.addInput(parameterValues.rendering, 'exportThreshold', {
+    label: 'Threshold',
+    min: 0,
+    max: 255,
+    step: 1
+  })
+    .on('change', (value) => {
+      // Update shader uniform in real-time
+      materials.displayMaterial.uniforms.exportThreshold.value = value / 255.0;
     });
 }
 
@@ -609,45 +824,76 @@ function setupActions() {
 
   actionsFolder.addSeparator();
 
-  // Vector export settings
-  actionsFolder.addInput(parameterValues.export, 'threshold', {
-    label: 'Export threshold',
-    min: 0,
-    max: 255,
-    step: 1
-  });
-
-  actionsFolder.addInput(parameterValues.export, 'resolution', {
-    label: 'Export resolution',
-    options: {
-      '1x': 1,
-      '2x': 2,
-      '4x': 4,
-      '8x': 8
-    }
-  });
-
-  // Export as SVG button
+  // Drawing editor button
   actionsFolder.addButton({
-    title: '📤 Export as SVG'
+    title: '🎨 Open Drawing Editor'
   })
     .on('click', async () => {
-      try {
-        const { exportAsSVG, downloadSVG } = await import('../vectorExport');
-        const svg = await exportAsSVG(parameterValues.export.threshold, parameterValues.export.resolution);
-        downloadSVG(svg);
-        console.log('SVG exported successfully');
-      } catch (error) {
-        console.error('SVG export failed:', error);
-        alert('SVG export failed: ' + error.message);
-      }
+      const { openDrawingEditor } = await import('../drawingEditor.js');
+      openDrawingEditor();
     });
 
-  // Export both PNG and SVG
-  actionsFolder.addButton({
-    title: '📦 Export PNG + SVG'
-  })
-    .on('click', () => {
-      exportBothFormats(parameterValues.export.threshold, parameterValues.export.resolution);
-    });
+  // REMOVED: Vector export settings - parameterValues.export doesn't exist
+  // actionsFolder.addInput(parameterValues.export, 'threshold', {
+  //   label: 'Export threshold',
+  //   min: 0,
+  //   max: 255,
+  //   step: 1
+  // });
+
+  // REMOVED: Duplicate save as image button
+  // actionsFolder.addButton({
+  //   title: 'Save as image (PNG)'
+  // })
+  //   .on('click', () => {
+  //     exportImage();
+  //   });
+
+  // Export as SVG button
+  const svgButton = actionsFolder.addButton({
+    title: '� Export as SVG'
+  });
+
+  svgButton.on('click', async () => {
+    try {
+      // Disable button and show loading state
+      svgButton.title = 'Exporting...';
+      svgButton.disabled = true;
+
+      console.log('Starting SVG export...');
+      console.log('Threshold:', parameterValues.rendering.exportThreshold);
+      console.log('Brightness:', parameterValues.rendering.brightness);
+      console.log('Contrast:', parameterValues.rendering.contrast);
+
+      const threshold = parameterValues.rendering.exportThreshold;
+      const brightness = parameterValues.rendering.brightness;
+      const contrast = parameterValues.rendering.contrast;
+      const svg = await exportAsSVG(threshold, brightness, contrast);
+      downloadSVG(svg, 'reaction-diffusion.svg');
+
+      console.log('SVG exported successfully!');
+
+      // Re-enable button
+      svgButton.title = '📐 Export as SVG';
+      svgButton.disabled = false;
+    } catch (error) {
+      console.error('SVG export error:', error);
+      alert('SVG export failed: ' + error.message);
+
+      // Re-enable button
+      svgButton.title = '📐 Export as SVG';
+      svgButton.disabled = false;
+    }
+  });
+}
+
+/**
+ * Helper function to extract boundary data from GPU texture
+ * Returns Float32Array or null
+ */
+function extractBoundaryData() {
+  // This would require reading back from GPU texture
+  // For now, return null - boundary will be regenerated from seed
+  // TODO: Implement texture readback if needed
+  return null;
 }

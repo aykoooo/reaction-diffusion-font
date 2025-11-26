@@ -1,0 +1,9 @@
+/*! Tweakpane 1.6.1 (c) 2016 cocopon, licensed under the MIT license. */
+
+/*! https://mths.be/codepointat v0.2.0 by @mathias */
+
+/**
+ * @license
+ * Copyright 2010-2025 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */

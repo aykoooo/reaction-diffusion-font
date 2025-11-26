@@ -47,6 +47,20 @@ export let simulationUniforms = {
     value: new THREE.Vector2(parameterValues.bias.x, parameterValues.bias.y)
   },
 
+  // Boundary condition uniforms
+  boundaryMask: {
+    type: "t",
+    value: null
+  },
+  enableBoundary: {
+    type: "bool",
+    value: false
+  },
+  boundaryFalloff: {
+    type: "f",
+    value: 0.0
+  },
+
   // Reaction-diffusion equation parameters
   f: {   // feed rate
     type: "f",
@@ -80,6 +94,73 @@ export let displayUniforms = {
   time: {
     type: "f",
     value: 0
+  },
+  renderingStyle: {
+    type: "i",
+    value: parameterValues.rendering.style || 6  // Default to Black and white (soft)
+  },
+  exportThreshold: {
+    type: "f",
+    value: parameterValues.rendering.exportThreshold / 255.0
+  },
+  brightness: {
+    type: "f",
+    value: parameterValues.rendering.brightness
+  },
+  contrast: {
+    type: "f",
+    value: parameterValues.rendering.contrast
+  },
+  // Boundary overlay uniforms
+  showBoundaryOverlay: {
+    type: "bool",
+    value: false
+  },
+  boundaryMaskDisplay: {
+    type: "t",
+    value: null
+  },
+  contrast: {
+    type: "f",
+    value: parameterValues.rendering.contrast
+  },
+  // HSL parameters
+  hslFrom: {
+    type: "v2",
+    value: new THREE.Vector2(0.6, 1.0)
+  },
+  hslTo: {
+    type: "v2",
+    value: new THREE.Vector2(0.0, 0.6)
+  },
+  hslSaturation: {
+    type: "f",
+    value: 0.5
+  },
+  hslLuminosity: {
+    type: "f",
+    value: 1.0
+  },
+  // Gradient color stops (RGBA where A is the position 0-1)
+  colorStop1: {
+    type: "v4",
+    value: new THREE.Vector4(0.0, 0.0, 0.0, 0.0)  // Black at 0%
+  },
+  colorStop2: {
+    type: "v4",
+    value: new THREE.Vector4(0.0, 0.0, 1.0, 0.25)  // Blue at 25%
+  },
+  colorStop3: {
+    type: "v4",
+    value: new THREE.Vector4(0.0, 1.0, 1.0, 0.5)  // Cyan at 50%
+  },
+  colorStop4: {
+    type: "v4",
+    value: new THREE.Vector4(1.0, 1.0, 0.0, 0.75)  // Yellow at 75%
+  },
+  colorStop5: {
+    type: "v4",
+    value: new THREE.Vector4(1.0, 0.0, 0.0, 1.0)  // Red at 100%
   }
 };
 

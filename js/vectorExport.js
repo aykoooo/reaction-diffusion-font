@@ -1,27 +1,44 @@
-import potrace from 'potrace-wasm';
+import { loadFromCanvas } from 'potrace-wasm';
 import { exportImage } from './export';
 
 /**
  * Export current simulation as SVG vector
  * @param {number} threshold - Black/white threshold (0-255)
- * @param {number} resolutionScale - Scale factor for high-res export
+ * @param {number} brightness - Brightness adjustment (0-2, default 1.0)
+ * @param {number} contrast - Contrast adjustment (0-2, default 1.0)
  * @returns {Promise<string>} - SVG content as string
  */
-export async function exportAsSVG(threshold = 128, resolutionScale = 1) {
+export async function exportAsSVG(threshold = 128, brightness = 1.0, contrast = 1.0) {
   try {
-    // Get current render target as high-res image
-    const canvas = await renderHighResCanvas(resolutionScale);
+    console.log('Capturing current canvas...');
+    
+    // Get current canvas directly (no scaling)
+    const canvas = captureCurrentCanvas();
 
-    // Convert to grayscale and apply threshold
-    const imageData = getImageData(canvas);
+    console.log('Applying adjustments...');
+    
+    // Convert to grayscale
+    let imageData = getImageData(canvas);
+    
+    // Apply brightness/contrast if not default values
+    if (brightness !== 1.0 || contrast !== 1.0) {
+      console.log(`Applying brightness: ${brightness}, contrast: ${contrast}`);
+      imageData = applyBrightnessContrast(imageData, brightness, contrast);
+    }
+    
+    // Apply threshold
     const binaryData = applyThreshold(imageData, threshold);
 
     // Create a temporary canvas with binary data
     const binaryCanvas = createBinaryCanvas(binaryData, canvas.width, canvas.height);
 
-    // Convert to SVG using potrace
-    const svg = await potrace(binaryCanvas);
+    console.log('Running Potrace...');
+    
+    // Convert to SVG using potrace-wasm's loadFromCanvas
+    const svg = await loadFromCanvas(binaryCanvas);
 
+    console.log('SVG generation complete');
+    
     return svg;
   } catch (error) {
     console.error('SVG export failed:', error);
@@ -30,7 +47,25 @@ export async function exportAsSVG(threshold = 128, resolutionScale = 1) {
 }
 
 /**
- * Render current simulation at higher resolution
+ * Capture current canvas at native resolution
+ * @returns {HTMLCanvasElement} - Canvas with current simulation state
+ */
+function captureCurrentCanvas() {
+  const sourceCanvas = global.renderer.domElement;
+  
+  // Create a copy of the canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = sourceCanvas.width;
+  canvas.height = sourceCanvas.height;
+  
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(sourceCanvas, 0, 0);
+  
+  return canvas;
+}
+
+/**
+ * Render current simulation at higher resolution (DEPRECATED - kept for compatibility)
  * @param {number} scale - Resolution scale factor
  * @returns {Promise<HTMLCanvasElement>} - High-res canvas
  */
@@ -105,6 +140,38 @@ function getImageData(canvas) {
 }
 
 /**
+ * Apply brightness and contrast adjustments to image data
+ * @param {ImageData} imageData
+ * @param {number} brightness - 0-2 multiplier (1.0 = no change)
+ * @param {number} contrast - 0-2 multiplier (1.0 = no change)
+ * @returns {ImageData}
+ */
+function applyBrightnessContrast(imageData, brightness, contrast) {
+  const data = imageData.data;
+  const adjusted = new Uint8ClampedArray(data.length);
+  
+  // Convert brightness from 0-2 range to -128 to +128
+  const brightnessOffset = (brightness - 1.0) * 128;
+  
+  for (let i = 0; i < data.length; i += 4) {
+    // Apply contrast and brightness to RGB channels
+    for (let j = 0; j < 3; j++) {
+      // Contrast: center around 128, apply multiplier, then offset back
+      let value = data[i + j];
+      value = ((value - 128) * contrast) + 128;
+      // Brightness: add offset
+      value += brightnessOffset;
+      // Clamp to valid range
+      adjusted[i + j] = Math.max(0, Math.min(255, value));
+    }
+    // Alpha channel unchanged
+    adjusted[i + 3] = data[i + 3];
+  }
+  
+  return new ImageData(adjusted, imageData.width, imageData.height);
+}
+
+/**
  * Apply threshold to create binary image
  * @param {ImageData} imageData
  * @param {number} threshold
@@ -167,15 +234,16 @@ export function downloadSVG(svgContent, filename = 'reaction-diffusion.svg') {
 /**
  * Export both PNG and SVG
  * @param {number} threshold
- * @param {number} resolutionScale
+ * @param {number} brightness
+ * @param {number} contrast
  */
-export async function exportBothFormats(threshold = 128, resolutionScale = 1) {
+export async function exportBothFormats(threshold = 128, brightness = 1.0, contrast = 1.0) {
   try {
     // Export PNG (existing functionality)
     exportImage();
 
     // Export SVG
-    const svg = await exportAsSVG(threshold, resolutionScale);
+    const svg = await exportAsSVG(threshold, brightness, contrast);
     downloadSVG(svg);
 
     console.log('Exported both PNG and SVG');

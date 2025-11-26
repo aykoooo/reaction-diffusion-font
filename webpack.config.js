@@ -20,6 +20,11 @@ module.exports = {
       }
     ]
   },
+  resolve: {
+    fallback: {
+      "fs": false
+    }
+  },
   devtool: 'inline-source-map',
   devServer: {
     host: '127.0.0.1',
