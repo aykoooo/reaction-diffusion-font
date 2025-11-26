@@ -1,0 +1,443 @@
+/* Font Source Modal Styles */
+.font-source-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+
+.font-source-modal.active {
+  display: flex;
+}
+
+.font-source-container {
+  background: #2f3137;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.font-source-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.font-source-header h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.font-source-close {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.font-source-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.font-source-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.font-source-option {
+  display: flex;
+  align-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.font-source-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.font-source-option.selected {
+  background: rgba(74, 158, 255, 0.15);
+  border-color: #4a9eff;
+}
+
+.font-source-option.locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.font-source-option.locked:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.font-source-option-radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.font-source-option.selected .font-source-option-radio {
+  border-color: #4a9eff;
+}
+
+.font-source-option.selected .font-source-option-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #4a9eff;
+  border-radius: 50%;
+}
+
+.font-source-option-icon {
+  font-size: 28px;
+  margin-right: 15px;
+  width: 40px;
+  text-align: center;
+}
+
+.font-source-option-content {
+  flex: 1;
+}
+
+.font-source-option-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.font-source-option-description {
+  color: #888;
+  font-size: 13px;
+}
+
+.font-source-option-badge {
+  background: #4a9eff;
+  color: #fff;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+.font-source-option-lock {
+  margin-left: 10px;
+  color: #888;
+  font-size: 18px;
+}
+
+/* Guidelines Toggle Section */
+.font-source-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+
+.font-source-settings h3 {
+  margin: 0 0 10px 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.font-source-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.font-source-toggle label {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggle-switch.active {
+  background: #4a9eff;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.toggle-switch.active::after {
+  left: 25px;
+}
+
+/* Actions */
+.font-source-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.font-source-actions button {
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.font-source-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ccc;
+}
+
+.font-source-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.font-source-apply {
+  background: #4a9eff;
+  border: none;
+  color: #fff;
+}
+
+.font-source-apply:hover {
+  background: #3a8eef;
+}
+
+/* Confirmation Modal */
+.confirmation-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 10001;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirmation-modal.active {
+  display: flex;
+}
+
+.confirmation-container {
+  background: #2f3137;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 450px;
+  width: 90vw;
+  text-align: center;
+}
+
+.confirmation-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.confirmation-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.confirmation-message {
+  color: #888;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.confirmation-actions button {
+  padding: 12px 28px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmation-no {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ccc;
+}
+
+.confirmation-no:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.confirmation-yes {
+  background: #f44336;
+  border: none;
+  color: #fff;
+}
+
+.confirmation-yes:hover {
+  background: #d32f2f;
+}
+
+.confirmation-keep {
+  background: #4a9eff;
+  border: none;
+  color: #fff;
+}
+
+.confirmation-keep:hover {
+  background: #3a8eef;
+}
+
+/* Glyph Export Modal */
+.glyph-export-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+
+.glyph-export-modal.active {
+  display: flex;
+}
+
+.glyph-export-container {
+  background: #2f3137;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90vw;
+}
+
+.glyph-export-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glyph-export-header h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+}
+
+.glyph-export-content {
+  margin-bottom: 25px;
+}
+
+.glyph-export-content label {
+  display: block;
+  color: #ccc;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.glyph-export-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 16px;
+  font-family: monospace;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.glyph-export-input:focus {
+  border-color: #4a9eff;
+}
+
+.glyph-export-hint {
+  color: #666;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.glyph-export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.glyph-export-actions button {
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}

@@ -5,6 +5,15 @@ export default {
 
   mode: 'preview',
 
+  // Font source type: 'default', 'custom', or 'drawing'
+  fontSource: 'default',
+
+  // Lock state - prevents accidental parameter changes
+  isLocked: true,
+
+  // Guidelines visibility
+  guidelinesVisible: true,
+
   f: parameterMetadata.f.initial,
   k: parameterMetadata.k.initial,
   dA: parameterMetadata.dA.initial,

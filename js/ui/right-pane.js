@@ -20,8 +20,11 @@ import { resetTextureSizes } from '../../entry';
 import { setupRenderTargets } from '../renderTargets';
 import { expandMap } from '../map';
 import { exportImage } from '../export';
-import { loadFontFromBuffer } from '../fontLoader';
+import { loadFontFromBuffer, getLoadedFont } from '../fontLoader';
 import { exportAsSVG, downloadSVG } from '../vectorExport';
+import { showFontSourceModal, getDefaultBrowserFont, toggleGuidelines, areGuidelinesVisible, isSettingsLocked } from '../fontSourceModal';
+import { showGlyphExportModal } from '../glyphExport';
+import { showBatchSettingsModal, applySettingsToAllGlyphs } from '../batchSettings';
 
 let pane;
 let paneContainer;
@@ -171,6 +174,33 @@ function setupWorkspaceFolder() {
       applyModeDefaults(value);
     });
 
+  // Font Source button - opens modal for choosing font source
+  const fontSourceLabel = getFontSourceLabel();
+  workspaceFolder.addButton({
+    title: `📁 Font Source: ${fontSourceLabel}`
+  })
+    .on('click', () => {
+      showFontSourceModal();
+    });
+
+  // Guidelines toggle
+  workspaceFolder.addInput(parameterValues, 'guidelinesVisible', {
+    label: 'Show Guidelines'
+  })
+    .on('change', (value) => {
+      toggleGuidelines();
+    });
+
+  // Lock toggle - prevent accidental parameter changes
+  workspaceFolder.addInput(parameterValues, 'isLocked', {
+    label: '🔒 Lock Settings'
+  })
+    .on('change', (value) => {
+      parameterValues.isLocked = value;
+    });
+
+  workspaceFolder.addSeparator();
+
   workspaceFolder.addInput(parameterValues.canvas, 'resolutionPreset', {
     label: 'Resolution',
     options: {
@@ -185,6 +215,18 @@ function setupWorkspaceFolder() {
       resetTextureSizes();
       drawFirstFrame(currentSeedType);
     });
+}
+
+/**
+ * Get the current font source label for display
+ */
+function getFontSourceLabel() {
+  if (parameterValues.fontSource === 'custom' && parameterValues.seed.font.fontLoaded) {
+    return parameterValues.seed.font.filename || 'Custom Font';
+  } else if (parameterValues.fontSource === 'drawing') {
+    return 'Drawing';
+  }
+  return getDefaultBrowserFont();
 }
 
 function applyModeDefaults(mode) {
@@ -822,7 +864,23 @@ function setupActions() {
       exportImage();
     });
 
+  // Export specific glyphs button
+  actionsFolder.addButton({
+    title: '📄 Export Specific Glyphs'
+  })
+    .on('click', () => {
+      showGlyphExportModal();
+    });
+
   actionsFolder.addSeparator();
+
+  // Batch settings button
+  actionsFolder.addButton({
+    title: '⚙️ Apply to All Glyphs'
+  })
+    .on('click', () => {
+      showBatchSettingsModal();
+    });
 
   // Drawing editor button
   actionsFolder.addButton({
@@ -833,25 +891,11 @@ function setupActions() {
       openDrawingEditor();
     });
 
-  // REMOVED: Vector export settings - parameterValues.export doesn't exist
-  // actionsFolder.addInput(parameterValues.export, 'threshold', {
-  //   label: 'Export threshold',
-  //   min: 0,
-  //   max: 255,
-  //   step: 1
-  // });
-
-  // REMOVED: Duplicate save as image button
-  // actionsFolder.addButton({
-  //   title: 'Save as image (PNG)'
-  // })
-  //   .on('click', () => {
-  //     exportImage();
-  //   });
+  actionsFolder.addSeparator();
 
   // Export as SVG button
   const svgButton = actionsFolder.addButton({
-    title: '� Export as SVG'
+    title: '📐 Export as SVG'
   });
 
   svgButton.on('click', async () => {

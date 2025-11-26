@@ -9,6 +9,9 @@ import { setupKeyboard } from './js/keyboard';
 import { setupMouse } from './js/mouse';
 import { setupMIDI } from './js/midi';
 import { initGuidelines, updateGuidelines } from './js/guidelines';
+import { initFontSourceModal } from './js/fontSourceModal';
+import { initGlyphExportModal } from './js/glyphExport';
+import { initBatchSettingsModal } from './js/batchSettings';
 
 import globals from './js/globals';
 import { simulationUniforms, displayUniforms } from './js/uniforms';
@@ -22,6 +25,9 @@ setupMap();                 // set up the live parameter map picker
 setupKeyboard();            // set up keyboard commands
 setupMouse();               // set up mouse controls
 setupMIDI();                // set up MIDI mappings
+initFontSourceModal();      // set up the font source modal
+initGlyphExportModal();     // set up the glyph export modal
+initBatchSettingsModal();   // set up the batch settings modal
 update();                   // kick off the main render loop
 
 //==============================================================
