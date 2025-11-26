@@ -84,8 +84,20 @@ export default {
     y: parameterMetadata.bias.y.initial
   },
 
-  export: {
-    threshold: 128,
-    resolution: 2
+  rendering: {
+    style: 6,  // Default: Black and white (soft)
+    exportThreshold: 128,
+    brightness: 1.0,
+    contrast: 1.0
+  },
+
+  boundary: {
+    enabled: false,
+    mode: 'exact',          // 'exact', 'padded', 'eroded', 'soft', 'inverted'
+    padding: 10,
+    erosion: 5,
+    blurRadius: 5,
+    invert: false,
+    showOverlay: false      // Debug visualization
   }
 };

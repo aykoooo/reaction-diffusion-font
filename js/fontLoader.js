@@ -51,13 +51,13 @@ export function clearFont() {
 
 /**
  * Draw text to canvas using the loaded font
- * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {CanvasRenderingContext2D} context - Canvas context
  * @param {string} text - Text to render
  * @param {number} x - X position (will be adjusted for center alignment)
  * @param {number} y - Y position (baseline)
  * @param {number} fontSize - Font size in pixels
  */
-export function drawTextWithFont(ctx, text, x, y, fontSize) {
+export function drawTextWithFont(context, text, x, y, fontSize) {
   if (!loadedFont) {
     console.warn('No font loaded, using fallback');
     return false;
@@ -67,10 +67,10 @@ export function drawTextWithFont(ctx, text, x, y, fontSize) {
     // Get the text width for center alignment
     const textWidth = loadedFont.getAdvanceWidth(text, fontSize);
     const adjustedX = x - (textWidth / 2); // Center align
-    
+
     // Create a path from the text
     const path = loadedFont.getPath(text, adjustedX, y, fontSize);
-    
+
     // Convert opentype.js path commands to Canvas path
     const p2d = new Path2D();
     path.commands.forEach(cmd => {
@@ -92,8 +92,8 @@ export function drawTextWithFont(ctx, text, x, y, fontSize) {
           break;
       }
     });
-    
-    ctx.fill(p2d);
+
+    context.fill(p2d);
     return true;
   } catch (error) {
     console.error('Error drawing text with font:', error);
@@ -114,7 +114,7 @@ export function getGlyphMetrics(char, fontSize) {
 
   const glyph = loadedFont.charToGlyph(char);
   const scale = fontSize / loadedFont.unitsPerEm;
-  
+
   return {
     advanceWidth: glyph.advanceWidth * scale,
     leftSideBearing: glyph.leftSideBearing * scale,
@@ -138,7 +138,7 @@ export function getFontMetrics(fontSize) {
   }
 
   const scale = fontSize / loadedFont.unitsPerEm;
-  
+
   return {
     ascender: loadedFont.ascender * scale,
     descender: loadedFont.descender * scale,

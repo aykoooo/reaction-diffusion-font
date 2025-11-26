@@ -23,6 +23,11 @@ uniform vec2 bias;
 
 uniform vec2 resolution;
 
+// BOUNDARY CONDITION UNIFORMS
+uniform sampler2D boundaryMask;
+uniform bool enableBoundary;
+uniform float boundaryFalloff;
+
 varying vec2 v_uvs[9];
 
 vec3 weights[3];
@@ -141,10 +146,33 @@ void main() {
   vec2 laplacian = getLaplacian(centerTexel);
   float reactionTerm = A * B * B;
 
-  gl_FragColor = vec4(
+  vec4 new_state = vec4(
     A + ((ndA * laplacian[0] - reactionTerm + nf * (1.0 - A)) * timestep),
     B + ((ndB * laplacian[1] + reactionTerm - (nk + nf) * B) * timestep),
     centerTexel.b,
     1.0
   );
+
+  // BOUNDARY CONDITION: Constrain simulation to boundary mask
+  if (enableBoundary) {
+    float boundary = texture2D(boundaryMask, v_uvs[0]).r;
+    
+    // DEBUG: Visualize boundary mask (uncomment to debug)
+    // gl_FragColor = vec4(boundary, 0.0, 1.0 - boundary, 1.0);
+    // return;
+    
+    // Hard boundary (Dirichlet): Reset to dead state outside boundary
+    if (boundary < 0.5) {
+      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);  // A=1, B=0 (dead state)
+      return;
+    }
+    
+    // Soft boundary: Gradual falloff near edges (if boundaryFalloff > 0)
+    if (boundaryFalloff > 0.0) {
+      float damping = smoothstep(0.0, boundaryFalloff, boundary);
+      new_state = mix(vec4(1.0, 0.0, 0.0, 1.0), new_state, damping);
+    }
+  }
+
+  gl_FragColor = new_state;
 }

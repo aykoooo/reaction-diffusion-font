@@ -10,6 +10,8 @@
   right: 8px;
   top: 8px;
   width: 350px;
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
 }
 
 #style-map-preview-image-container {
