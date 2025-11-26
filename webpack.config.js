@@ -22,7 +22,8 @@ module.exports = {
   },
   resolve: {
     fallback: {
-      "fs": false
+      "fs": false,
+      "path": false
     }
   },
   devtool: 'inline-source-map',
