@@ -51,6 +51,11 @@ export default {
 
   useSmoothing: false,
 
+  iterations: {
+    target: 0,       // 0 = unlimited, >0 = stop at this count
+    autoPause: false // pause when target reached
+  },
+
   canvas: {
     width: parameterMetadata.canvas.width.initial,
     height: parameterMetadata.canvas.height.initial,

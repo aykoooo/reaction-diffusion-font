@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { drawFirstFrame } from './js/firstFrame';
 import { setupRenderTargets } from './js/renderTargets';
-import { setupStats, updateStats } from './js/stats';
+import { setupStats, updateStats, setTargetIterations } from './js/stats';
 import { setupUI } from './js/ui';
 import { setupMap } from './js/map';
 import { setupKeyboard } from './js/keyboard';
@@ -17,12 +17,29 @@ import parameterValues from './js/parameterValues';
 
 setupEnvironment();         // set up the camera, scene, and other stuff ThreeJS needs to
 setupStats(globals.pingPongSteps);  // set up the FPS and iteration counters
+setupIterationTarget();     // set up iteration target with auto-pause callback
 setupUI();                  // set up the Tweakpane UI
 setupMap();                 // set up the live parameter map picker
 setupKeyboard();            // set up keyboard commands
 setupMouse();               // set up mouse controls
 setupMIDI();                // set up MIDI mappings
 update();                   // kick off the main render loop
+
+//==============================================================
+//  ITERATION TARGET
+//  - Set up target iterations with auto-pause callback
+//==============================================================
+function setupIterationTarget() {
+  updateIterationTarget();
+}
+
+export function updateIterationTarget() {
+  setTargetIterations(parameterValues.iterations.target, () => {
+    if (parameterValues.iterations.autoPause) {
+      globals.isPaused = true;
+    }
+  });
+}
 
 //==============================================================
 //  ENVIRONMENT (scene, camera, display mesh, etc)

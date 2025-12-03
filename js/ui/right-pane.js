@@ -16,7 +16,7 @@ import { simulationUniforms } from '../uniforms';
 import * as materials from '../materials';
 
 import { InitialTextureTypes, drawFirstFrame } from '../firstFrame';
-import { resetTextureSizes } from '../../entry';
+import { resetTextureSizes, updateIterationTarget } from '../../entry';
 import { setupRenderTargets } from '../renderTargets';
 import { expandMap } from '../map';
 import { exportImage } from '../export';
@@ -185,6 +185,23 @@ function setupWorkspaceFolder() {
       resetTextureSizes();
       drawFirstFrame(currentSeedType);
     });
+
+  // Iteration controls
+  workspaceFolder.addSeparator();
+
+  workspaceFolder.addInput(parameterValues.iterations, 'target', {
+    label: 'Stop at iterations',
+    min: 0,
+    max: 50000,
+    step: 100
+  })
+    .on('change', (value) => {
+      updateIterationTarget();
+    });
+
+  workspaceFolder.addInput(parameterValues.iterations, 'autoPause', {
+    label: 'Auto-pause'
+  });
 }
 
 function applyModeDefaults(mode) {

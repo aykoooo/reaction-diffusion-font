@@ -1,6 +1,8 @@
 import fps from 'fps';
 
 let numIterations = 0, iterationsPerFrame;
+let targetIterations = 0;  // 0 = unlimited
+let onTargetReached = null;  // callback when target hit
 let ticker = fps({ every: 60 });
 let statsContainerEl, fpsEl, iterCountEl;
 
@@ -32,11 +34,46 @@ export function setupStats(_iterationsPerFrame) {
     });
   }
 
+export function resetIterations() {
+  numIterations = 0;
+  updateIterationDisplay();
+}
+
+export function setTargetIterations(target, callback) {
+  targetIterations = target;
+  onTargetReached = callback;
+  updateIterationDisplay();
+}
+
+export function getIterationCount() {
+  return numIterations;
+}
+
+export function getTargetIterations() {
+  return targetIterations;
+}
+
+function updateIterationDisplay() {
+  if (!iterCountEl) return;
+  let display = 'iterations: ' + numIterations.toLocaleString();
+  if (targetIterations > 0) {
+    display += ' / ' + targetIterations.toLocaleString();
+  }
+  iterCountEl.innerHTML = display + ' <span aria-hidden="true">•</span>&nbsp;';
+}
+
 export function updateStats(isPaused) {
   ticker.tick();
 
   if(!isPaused) {
     numIterations += iterationsPerFrame;
-    iterCountEl.innerHTML = 'iterations: ' + numIterations.toLocaleString() + ' <span aria-hidden="true">•</span>&nbsp;';
+    updateIterationDisplay();
+
+    // Check if target reached
+    if (targetIterations > 0 && numIterations >= targetIterations) {
+      if (onTargetReached) {
+        onTargetReached();
+      }
+    }
   }
 }

@@ -12,6 +12,7 @@ import { displayUniforms, passthroughUniforms, simulationUniforms } from './unif
 import { displayMaterial, passthroughMaterial, simulationMaterial } from './materials';
 import { hasFontLoaded, drawTextWithFont } from './fontLoader';
 import { createBoundaryMask } from './boundaryProcessor';
+import { resetIterations } from './stats';
 
 let bufferImage, bufferCanvasCtx;
 
@@ -25,6 +26,8 @@ export const InitialTextureTypes = {
 };
 
 export function drawFirstFrame(type = InitialTextureTypes.CIRCLE) {
+  // Reset iteration counter on every restart
+  resetIterations();
   // Grab the invisible canvas context that we can draw initial image data into
   global.bufferCanvas = document.querySelector('#buffer-canvas');
   bufferCanvasCtx = bufferCanvas.getContext('2d', { willReadFrequently: true });
