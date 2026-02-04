@@ -13,8 +13,9 @@
 
 ## About This Project
 
-This tool was created as part of the [**Type Design**](https://agdm.fi.muni.cz/en/study/courses/type-design) course at the **Faculty of Informatics, Masaryk University**.
-
+> [!NOTE]  
+> This tool was created as part of the [**Type Design**](https://agdm.fi.muni.cz/en/study/courses/type-design) course at the **Faculty of Informatics, Masaryk University**.
+> 
 **Why "Nabla"?** The project is named after the **∇** (nabla) symbol, the del operator used in the reaction-diffusion equations. Specifically, **∇²** (the Laplacian) appears in both equations and determines how the chemicals diffuse through the medium. It's the mathematical heart of the pattern formation, making it a fitting namesake for a typography tool built on these equations.
 
 While traditional type design relies on manual bezier curve manipulation, this project investigates how algorithmic processes, specifically reaction-diffusion systems, can create organic, evolving letterforms that would be nearly impossible to design by hand.
